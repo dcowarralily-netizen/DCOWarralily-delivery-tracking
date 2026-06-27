@@ -68,9 +68,10 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Payment Status</label>
-                        <select id="paymentStatus" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-medium">
+                        <select id="paymentStatus" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-bold text-slate-700">
                             <option value="Paid">Paid</option>
                             <option value="Pending">Pending</option>
+                            <option value="Account">Account</option>
                             <option value="Cash on Delivery">Cash on Delivery</option>
                         </select>
                     </div>
@@ -104,14 +105,14 @@
             </div>
 
             <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#0053A0]">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b border-slate-200 pb-3">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-4 border-b border-slate-200 pb-3">
                     <h2 class="text-xl font-black text-slate-800 uppercase tracking-wide">All Outlet Logs</h2>
                     <div class="flex flex-wrap items-center gap-2">
                         <label class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1 uppercase tracking-wider cursor-pointer">
                             📤 Import CSV <input type="file" id="importFileInput" accept=".csv" onchange="importFromCSV(this)" class="hidden">
                         </label>
-                        <button onclick="exportToCSV()" class="text-xs bg-[#0053A0] hover:bg-[#003f7a] text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1 uppercase tracking-wider">📥 Download CSV</button>
-                        <button onclick="clearAllData()" class="text-xs font-bold text-red-600 hover:underline uppercase pl-1">Clear All</button>
+                        <button onclick="exportToCSV()" class="text-xs bg-[#0053A0] hover:bg-[#003f7a] text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1 uppercase tracking-wider">📥 Download Monthly CSV</button>
+                        <button onclick="restartFreshLog()" class="text-xs bg-[#E31B23] hover:bg-[#c2131a] text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1 uppercase tracking-wider">🔄 Restart Fresh Log</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -145,7 +146,7 @@
             measurementId: "G-R2W5ERQEV9"
         };
 
-        // Initialize Firebase App & Firestore References
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const deliveriesCollection = db.collection("deliveries");
@@ -153,11 +154,10 @@
         let currentEditingId = null;
         let globalDeliveriesArray = [];
 
-        // App Initialization
         window.addEventListener('DOMContentLoaded', () => {
             setDefaultDate();
             
-            // Real-Time Sync Hook: Listens to cloud updates instantly across all workspace screens
+            // Real-Time Cloud Synchronization Hooks
             deliveriesCollection.onSnapshot((snapshot) => {
                 globalDeliveriesArray = [];
                 snapshot.forEach((doc) => {
@@ -174,6 +174,12 @@
             return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         }
 
+        function getLocalMonthYearString() {
+            const today = new Date();
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            return `${months[today.getMonth()]}_${today.getFullYear()}`;
+        }
+
         function setDefaultDate() {
             document.getElementById('deliveryDate').value = getLocalTodayString();
         }
@@ -183,7 +189,7 @@
             return new Date(year, month - 1, day);
         }
 
-        // Form Submission (Add or Update)
+        // Form Submit Actions
         document.getElementById('deliveryForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -289,7 +295,13 @@
             }
 
             sortedDeliveries.forEach(item => {
-                const payColor = item.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-[#E31B23]/10 text-[#E31B23]';
+                let payColor = 'bg-[#E31B23]/10 text-[#E31B23]';
+                if (item.paymentStatus === 'Paid') {
+                    payColor = 'bg-green-100 text-green-800';
+                } else if (item.paymentStatus === 'Account') {
+                    payColor = 'bg-indigo-100 text-indigo-800 border border-indigo-200/50';
+                }
+
                 const typeColor = item.type === 'Recurring' ? 'bg-[#0053A0]/10 text-[#0053A0] border border-[#0053A0]/20' : 'bg-slate-100 text-slate-600';
                 const repeatText = item.type === 'Recurring' ? `<br><span class="text-[10px] text-[#0053A0] font-bold">🔁 Interval: ${item.frequency || 30} Days</span>` : '';
                 
@@ -384,18 +396,64 @@
             });
         }
 
-        // CSV Utilities
+        // CSV Export Configuration Engine with Auto Monthly Title Layout
         function exportToCSV() {
             if (globalDeliveriesArray.length === 0) return alert("No records to export!");
+            
             const headers = ["Date", "Customer Name", "Phone", "Address", "Products/Medication", "Payment Status", "Delivery Type", "Schedule Frequency (Days)"];
             const csvRows = [headers.join(",")];
+            
             globalDeliveriesArray.forEach(item => {
-                csvRows.push([`"${item.date}"`, `"${item.customerName.replace(/"/g, '""')}"`, `"${item.phone.replace(/"/g, '""')}"`, `"${item.address.replace(/"/g, '""')}"`, `"${item.products.replace(/"/g, '""')}"`, `"${item.paymentStatus}"`, `"${item.type}"`, `"${item.frequency || 30}"`].join(","));
+                csvRows.push([
+                    `"${item.date}"`, 
+                    `"${(item.customerName || '').replace(/"/g, '""')}"`, 
+                    `"${(item.phone || '').replace(/"/g, '""')}"`, 
+                    `"${(item.address || '').replace(/"/g, '""')}"`, 
+                    `"${(item.products || '').replace(/"/g, '""')}"`, 
+                    `"${item.paymentStatus}"`, 
+                    `"${item.type}"`, 
+                    `"${item.frequency || 30}"`
+                ].join(","));
             });
-            const link = document.createElement("a");
-            link.setAttribute("href", URL.createObjectURL(new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' })));
-            link.setAttribute("download", `chemist_outlet_deliveries_${getLocalTodayString()}.csv`);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            
+            const csvContent = "\ufeff" + csvRows.join("\r\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const filename = `chemist_outlet_deliveries_${getLocalMonthYearString()}.csv`;
+            
+            if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveOrOpenBlob(blob, filename);
+            } else {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // Safety Gated Cloud Database Restart Script
+        async function restartFreshLog() {
+            if (globalDeliveriesArray.length === 0) {
+                alert("The log dashboard is already clean and empty.");
+                return;
+            }
+
+            const stepOne = confirm("⚠️ MONTHLY RESET ACTION:\n\nHave you already downloaded this month's CSV backup? Clicking OK will wipe the database so you can start a fresh month.");
+            if (!stepOne) return;
+
+            const stepTwo = confirm("🚨 FINAL WARNING:\n\nThis will instantly delete ALL delivery records from the cloud for ALL devices in the store. Are you completely ready to clear the screen?");
+            if (!stepTwo) return;
+
+            try {
+                const snapshot = await deliveriesCollection.get();
+                const batch = db.batch();
+                snapshot.forEach((doc) => batch.delete(doc.ref));
+                await batch.commit();
+                resetForm();
+            } catch (err) {
+                alert("Cloud write error. Data was not cleared.");
+            }
         }
 
         function importFromCSV(input) {
@@ -434,15 +492,6 @@
                 input.value = '';
             };
             reader.readAsText(file);
-        }
-
-        async function clearAllData() {
-            if(confirm("Wipe all cloud datasets permanently?")) {
-                const snapshot = await deliveriesCollection.get();
-                const batch = db.batch();
-                snapshot.forEach((doc) => batch.delete(doc.ref));
-                await batch.commit();
-            }
         }
     </script>
 </body>
