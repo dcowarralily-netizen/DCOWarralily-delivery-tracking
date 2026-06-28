@@ -5,16 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Direct Chemist Outlet Warralily - Realtime Cloud Tracker</title>
     
-    <!-- Mobile App Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0053A0">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -142,6 +139,7 @@
             });
         });
 
+        // Add/Update
         document.getElementById('deliveryForm').addEventListener('submit', async e => {
             e.preventDefault();
             const id = (window.editingId || Date.now()).toString();
@@ -149,38 +147,56 @@
                 id: parseInt(id), customerName: document.getElementById('customerName').value,
                 date: document.getElementById('deliveryDate').value, address: document.getElementById('address').value,
                 products: document.getElementById('products').value, paymentStatus: document.getElementById('paymentStatus').value,
-                type: document.getElementById('deliveryType').value, frequency: parseInt(document.getElementById('frequencyDays').value)
+                type: document.getElementById('deliveryType').value, frequency: parseInt(document.getElementById('frequencyDays').value) || 30
             });
             resetForm();
         });
 
+        function parseDate(dStr) { const [y,m,d] = dStr.split('-').map(Number); return new Date(y, m-1, d); }
+
         function renderUI() {
             const body = document.getElementById('logTableBody');
-            const rem = document.getElementById('remindersContainer');
-            body.innerHTML = ''; rem.innerHTML = '';
+            body.innerHTML = '';
+            const sorted = [...globalData].sort((a,b) => parseDate(b.date) - parseDate(a.date));
             
-            const sorted = [...globalData].sort((a,b) => new Date(b.date) - new Date(a.date));
             sorted.forEach(item => {
-                const payClass = item.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : (item.paymentStatus === 'Account' ? 'bg-indigo-100 text-indigo-800' : 'bg-red-100 text-red-800');
-                body.innerHTML += `<tr class="hover:bg-slate-50"><td class="py-3 font-bold text-slate-600">${item.date}</td><td class="py-3 font-bold">${item.customerName}</td><td class="py-3 text-slate-500">${item.address}</td><td class="py-3 text-[#0053A0] font-bold">${item.products}</td><td class="py-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${payClass}">${item.paymentStatus}</span></td><td class="py-3 text-right"><button onclick="edit(${item.id})" class="text-[#0053A0] font-bold mr-2">Edit</button><button onclick="del(${item.id})" class="text-red-600 font-bold">Delete</button></td></tr>`;
+                const pClass = item.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : (item.paymentStatus === 'Account' ? 'bg-indigo-100 text-indigo-800' : 'bg-red-100 text-red-800');
+                body.innerHTML += `<tr class="hover:bg-slate-50"><td class="py-3 font-bold text-slate-600">${item.date}</td><td class="py-3 font-bold">${item.customerName}</td><td class="py-3 text-slate-500">${item.address}</td><td class="py-3 text-[#0053A0] font-bold">${item.products}</td><td class="py-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${pClass}">${item.paymentStatus}</span></td><td class="py-3 text-right"><button onclick="edit(${item.id})" class="text-[#0053A0] font-bold mr-2">Edit</button><button onclick="del(${item.id})" class="text-red-600 font-bold">Delete</button></td></tr>`;
+            });
+            renderReminders();
+        }
+
+        function renderReminders() {
+            const rem = document.getElementById('remindersContainer');
+            rem.innerHTML = '';
+            const today = new Date(); today.setHours(0,0,0,0);
+            
+            // Map to track latest recurring entries per user
+            const latest = {};
+            globalData.filter(d => d.type === 'Recurring').forEach(item => {
+                if(!latest[item.customerName] || parseDate(item.date) > parseDate(latest[item.customerName].date)) {
+                    latest[item.customerName] = item;
+                }
             });
 
-            // Reminders Engine
-            const today = new Date(); today.setHours(0,0,0,0);
-            globalData.filter(d => d.type === 'Recurring').forEach(item => {
-                const last = new Date(item.date);
+            Object.values(latest).forEach(item => {
+                const last = parseDate(item.date);
                 const due = new Date(last.getTime() + (item.frequency * 86400000));
                 const diff = Math.ceil((due - today) / 86400000);
-                if (diff <= 5) {
-                    const style = diff < 0 ? 'bg-red-50 border-red-500' : 'bg-amber-50 border-amber-500';
-                    rem.innerHTML += `<div class="p-3 border-l-4 rounded ${style} flex justify-between items-center"><div><p class="font-bold">${item.customerName}</p><p class="text-xs">Next due: ${due.toISOString().split('T')[0]} (${diff < 0 ? 'Overdue' : diff + ' days left'})</p></div><button onclick="markDone(${item.id})" class="bg-blue-600 text-white text-xs px-3 py-1 rounded font-bold">Done</button></div>`;
+                
+                // Show items due in 7 days or less
+                if (diff <= 7) {
+                    const style = diff < 0 ? 'bg-red-50 border-red-500' : (diff === 0 ? 'bg-amber-100 border-amber-500' : 'bg-slate-50 border-slate-300');
+                    rem.innerHTML += `<div class="p-3 border-l-4 rounded ${style} flex justify-between items-center shadow-sm"><div><p class="font-bold">${item.customerName}</p><p class="text-xs text-slate-600">Due: ${due.toISOString().split('T')[0]} (${diff < 0 ? 'Overdue' : (diff === 0 ? 'Today' : diff + ' days left')})</p></div><button onclick="markDone(${item.id})" class="bg-blue-600 text-white text-xs px-3 py-1 rounded font-bold hover:bg-blue-700">Done</button></div>`;
                 }
             });
         }
 
         async function markDone(id) {
             const item = globalData.find(d => d.id === id);
-            await col.doc(Date.now().toString()).set({...item, id: Date.now(), date: new Date().toISOString().split('T')[0]});
+            if(!item) return;
+            const newId = Date.now();
+            await col.doc(newId.toString()).set({...item, id: newId, date: new Date().toISOString().split('T')[0]});
         }
 
         function edit(id) {
@@ -195,13 +211,29 @@
             document.getElementById('frequencyDays').value = item.frequency;
             document.getElementById('submitBtn').innerText = "Update";
             document.getElementById('cancelEditBtn').classList.remove('hidden');
+            window.scrollTo({top:0, behavior:'smooth'});
         }
 
-        async function del(id) { if(confirm('Delete?')) await col.doc(id.toString()).delete(); }
-        async function restartFreshLog() { if(confirm('Clear all?')) { const s = await col.get(); s.forEach(d => d.ref.delete()); } }
-        function resetForm() { window.editingId = null; document.getElementById('deliveryForm').reset(); document.getElementById('submitBtn').innerText = "Log Delivery"; document.getElementById('cancelEditBtn').classList.add('hidden'); }
-        function exportToCSV() { /* Export logic included */ }
-        function importFromCSV(i) { /* Import logic included */ }
+        async function del(id) { if(confirm('Delete this record?')) await col.doc(id.toString()).delete(); }
+        async function restartFreshLog() { 
+            if(confirm('Clear all logs for the new month?')) { 
+                const s = await col.get(); 
+                const batch = db.batch();
+                s.forEach(d => batch.delete(d.ref)); 
+                await batch.commit();
+            } 
+        }
+        function resetForm() { window.editingId = null; document.getElementById('deliveryForm').reset(); document.getElementById('submitBtn').innerText = "Log Delivery"; document.getElementById('cancelEditBtn').classList.add('hidden'); document.getElementById('deliveryDate').value = new Date().toISOString().split('T')[0]; }
+        
+        function exportToCSV() {
+            const headers = ["Date", "Name", "Address", "Product", "Payment", "Type", "Freq"];
+            const csvRows = [headers.join(",")];
+            globalData.forEach(i => csvRows.push([`"${i.date}"`, `"${i.customerName}"`, `"${i.address}"`, `"${i.products}"`, `"${i.paymentStatus}"`, `"${i.type}"`, `"${i.frequency}"`].join(",")));
+            const blob = new Blob([csvRows.join("\n")], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `monthly_log_${new Date().getMonth()+1}.csv`; a.click();
+        }
+        function importFromCSV(i) { /* Import omitted for brevity */ }
     </script>
 </body>
 </html>
