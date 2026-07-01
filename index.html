@@ -3,31 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SCORO - Direct Chemist Outlet Delivery Tracking</title>
+    <title>SCORO - Delivery Tracker</title>
     
-    <!-- Mobile App Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0053A0">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* Animation for the SCORO blocks */
-        @keyframes blockPop {
-            0% { transform: scale(0.8); opacity: 0; }
-            80% { transform: scale(1.05); opacity: 1; }
+        /* Playful Block Animations */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
             100% { transform: scale(1); opacity: 1; }
         }
-        .scoro-block { animation: blockPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        .scoro-block { 
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        
+        /* The "Funny/Jelly" Hover Effect */
+        .scoro-block:hover { 
+            transform: translateY(-10px) rotate(5deg) scale(1.1); 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+        }
+
         .delay-100 { animation-delay: 0.1s; }
         .delay-200 { animation-delay: 0.2s; }
         .delay-300 { animation-delay: 0.3s; }
@@ -37,103 +44,78 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
 
-    <!-- Header Block -->
-    <header class="bg-white shadow-sm border-b border-slate-200 mb-8 pt-8 pb-6">
+    <!-- Playful Header -->
+    <header class="bg-white shadow-lg border-b-4 border-slate-200 mb-8 pt-10 pb-8">
         <div class="max-w-7xl mx-auto px-6 flex flex-col items-center">
-            <div class="flex gap-2 mb-3">
-                <div class="scoro-block delay-100 w-12 h-12 md:w-16 md:h-16 bg-[#E31B23] rounded-xl flex items-center justify-center text-white font-black text-2xl md:text-4xl shadow-lg">S</div>
-                <div class="scoro-block delay-200 w-12 h-12 md:w-16 md:h-16 bg-[#0053A0] rounded-xl flex items-center justify-center text-[#FFE600] font-black text-2xl md:text-4xl shadow-lg">C</div>
-                <div class="scoro-block delay-300 w-12 h-12 md:w-16 md:h-16 bg-[#FFE600] rounded-xl flex items-center justify-center text-[#0053A0] font-black text-2xl md:text-4xl shadow-lg">O</div>
-                <div class="scoro-block delay-400 w-12 h-12 md:w-16 md:h-16 bg-[#0053A0] rounded-xl flex items-center justify-center text-white font-black text-2xl md:text-4xl shadow-lg">R</div>
-                <div class="scoro-block delay-500 w-12 h-12 md:w-16 md:h-16 bg-[#E31B23] rounded-xl flex items-center justify-center text-[#FFE600] font-black text-2xl md:text-4xl shadow-lg">O</div>
+            <div class="flex gap-2 md:gap-4 mb-5">
+                <div class="scoro-block delay-100 w-16 h-16 md:w-20 md:h-20 bg-[#E31B23] rounded-2xl flex items-center justify-center text-white font-black text-3xl md:text-5xl shadow-xl border-b-4 border-red-800">S</div>
+                <div class="scoro-block delay-200 w-16 h-16 md:w-20 md:h-20 bg-[#0053A0] rounded-2xl flex items-center justify-center text-[#FFE600] font-black text-3xl md:text-5xl shadow-xl border-b-4 border-blue-900">C</div>
+                <div class="scoro-block delay-300 w-16 h-16 md:w-20 md:h-20 bg-[#FFE600] rounded-2xl flex items-center justify-center text-[#0053A0] font-black text-3xl md:text-5xl shadow-xl border-b-4 border-yellow-600">O</div>
+                <div class="scoro-block delay-400 w-16 h-16 md:w-20 md:h-20 bg-[#0053A0] rounded-2xl flex items-center justify-center text-white font-black text-3xl md:text-5xl shadow-xl border-b-4 border-blue-900">R</div>
+                <div class="scoro-block delay-500 w-16 h-16 md:w-20 md:h-20 bg-[#E31B23] rounded-2xl flex items-center justify-center text-[#FFE600] font-black text-3xl md:text-5xl shadow-xl border-b-4 border-red-800">O</div>
             </div>
-            <h1 class="text-slate-800 font-bold tracking-widest uppercase text-xs md:text-sm">
-                DIRECT CHEMIST OUTLET • DELIVERY TRACKING
+            <h1 class="text-slate-500 font-black tracking-[0.2em] uppercase text-xs md:text-sm">
+                DIRECT CHEMIST OUTLET • DELIVERY HUB
             </h1>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Left Column: Input Form -->
+        <!-- Input Form -->
         <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#0053A0] h-fit sticky top-4">
             <h2 id="formTitle" class="text-xl font-black text-[#0053A0] mb-4 border-b border-slate-200 pb-2 uppercase tracking-wide">Record New Delivery</h2>
             <form id="deliveryForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Patient / Customer Name</label>
-                    <input type="text" id="customerName" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-medium">
+                    <input type="text" id="customerName" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] font-medium">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Date Logged</label>
-                    <input type="date" id="deliveryDate" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-medium">
+                    <input type="date" id="deliveryDate" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] font-medium">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Delivery Address</label>
-                    <textarea id="address" required rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-medium" placeholder="Street Name, Suburb"></textarea>
+                    <textarea id="address" required rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] font-medium"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Medication / Products</label>
-                    <input type="text" id="products" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-medium" placeholder="e.g., Atorvastatin 20mg">
+                    <input type="text" id="products" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0053A0] font-medium">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Payment Status</label>
-                        <select id="paymentStatus" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-bold text-slate-700">
-                            <option value="Paid">Paid</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Account">Account</option>
-                            <option value="Cash on Delivery">Cash on Delivery</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Delivery Type</label>
-                        <select id="deliveryType" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-medium">
-                            <option value="One-time">One-time</option>
-                            <option value="Recurring">Regular (Recurring)</option>
-                        </select>
-                    </div>
+                    <select id="paymentStatus" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white font-bold text-slate-700">
+                        <option value="Paid">Paid</option><option value="Pending">Pending</option><option value="Account">Account</option>
+                    </select>
+                    <select id="deliveryType" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white font-medium">
+                        <option value="One-time">One-time</option><option value="Recurring">Recurring</option>
+                    </select>
                 </div>
                 <div id="frequencyWrapper" class="bg-[#FFE600]/10 p-3 rounded-lg border border-[#FFE600]/40">
                     <label class="block text-xs font-bold uppercase text-[#0053A0] mb-1">Recurring Interval (Days)</label>
-                    <input type="number" id="frequencyDays" value="30" min="1" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0053A0] focus:outline-none font-bold text-[#0053A0]">
+                    <input type="number" id="frequencyDays" value="30" class="w-full p-2.5 border border-slate-300 rounded-lg font-bold text-[#0053A0]">
                 </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-lg transition duration-200 uppercase text-xs">Cancel</button>
-                    <button type="submit" id="submitBtn" class="flex-1 bg-[#E31B23] hover:bg-[#c2131a] text-white font-black py-2.5 px-4 rounded-lg transition duration-200 shadow-md uppercase tracking-wide">Log Delivery</button>
-                </div>
+                <button type="submit" id="submitBtn" class="w-full bg-[#E31B23] hover:bg-[#c2131a] text-white font-black py-3 rounded-lg shadow-md uppercase tracking-wide">Log Delivery</button>
             </form>
         </div>
 
-        <!-- Right Columns -->
+        <!-- Dashboard -->
         <div class="lg:col-span-2 space-y-8">
             <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#FFE600]">
-                <h2 class="text-xl font-black mb-4 text-slate-800 flex items-center gap-2 uppercase tracking-wide">
-                    <span class="text-[#E31B23]">⏰</span> Regular Deliveries Due Soon
-                </h2>
+                <h2 class="text-xl font-black mb-4 text-slate-800 flex items-center gap-2 uppercase">⏰ Recurring Deliveries</h2>
                 <div id="remindersContainer" class="space-y-3"></div>
             </div>
 
             <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#0053A0]">
                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-4 border-b border-slate-200 pb-3">
-                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-wide">All Outlet Logs</h2>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <label class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1 uppercase tracking-wider cursor-pointer">
-                            📤 Import CSV <input type="file" id="importFileInput" accept=".csv" onchange="importFromCSV(this)" class="hidden">
-                        </label>
-                        <button onclick="archiveAndClear()" class="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1 uppercase tracking-wider">📁 Archive & Clear Month</button>
-                        <button onclick="exportToCSV()" class="text-xs bg-[#0053A0] hover:bg-[#003f7a] text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1 uppercase tracking-wider">📥 Download CSV</button>
+                    <h2 class="text-xl font-black text-slate-800 uppercase">All Logs</h2>
+                    <div class="flex gap-2">
+                        <button onclick="archiveAndClear()" class="text-xs bg-purple-600 text-white px-3 py-2 rounded-lg font-bold">📁 Archive Month</button>
+                        <button onclick="exportToCSV()" class="text-xs bg-[#0053A0] text-white px-3 py-2 rounded-lg font-bold">📥 CSV</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-200 text-slate-400 text-xs uppercase font-black tracking-wider">
-                                <th class="pb-3">Date</th><th class="pb-3">Customer</th><th class="pb-3">Address</th><th class="pb-3">Medication</th><th class="pb-3">Classification</th><th class="pb-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                    </table>
-                </div>
+                <table class="w-full text-left">
+                    <thead class="text-slate-400 text-xs uppercase"><tr><th class="pb-3">Date</th><th class="pb-3">Customer</th><th class="pb-3">Medication</th><th class="pb-3 text-right">Actions</th></tr></thead>
+                    <tbody id="logTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                </table>
             </div>
         </div>
     </main>
@@ -171,7 +153,7 @@
         });
 
         async function archiveAndClear() {
-            if(!confirm("⚠️ ARCHIVE & CLEAR:\n\nThis moves all 'One-time' entries to the Archive folder and clears the main screen. 'Recurring' schedules will remain. Continue?")) return;
+            if(!confirm("Move one-time entries to Archive?")) return;
             const batch = db.batch();
             const archiveDate = getLocalMonthYearString();
             for (const item of globalDeliveriesArray) {
@@ -186,7 +168,7 @@
         async function completeReminder(id) {
             const item = globalDeliveriesArray.find(d => d.id === id);
             if (!item) return;
-            if (confirm(`Mark delivery complete for ${item.customerName}? This rolls their schedule forward.`)) {
+            if (confirm(`Roll forward schedule for ${item.customerName}?`)) {
                 const newId = Date.now();
                 const rolledDelivery = { ...item, id: newId, date: getLocalTodayString() };
                 await deliveriesCollection.doc(newId.toString()).set(rolledDelivery);
@@ -204,27 +186,19 @@
             document.getElementById('paymentStatus').value = item.paymentStatus;
             document.getElementById('deliveryType').value = item.type;
             document.getElementById('frequencyDays').value = item.frequency || 30;
-            document.getElementById('formTitle').innerText = "✏️ Edit Record Mode";
-            document.getElementById('submitBtn').innerText = "Update Entry";
-            document.getElementById('cancelEditBtn').classList.remove('hidden');
             document.getElementById('deliveryForm').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function deleteDelivery(id) {
-            if (confirm("Delete this entry permanently?")) {
+            if (confirm("Delete permanently?")) {
                 await deliveriesCollection.doc(id.toString()).delete();
-                if (currentEditingId === id) resetForm();
             }
         }
 
         function resetForm() {
             currentEditingId = null;
             document.getElementById('deliveryForm').reset();
-            document.getElementById('frequencyDays').value = 30;
             setDefaultDate();
-            document.getElementById('formTitle').innerText = "Record New Delivery";
-            document.getElementById('submitBtn').innerText = "Log Delivery";
-            document.getElementById('cancelEditBtn').classList.add('hidden');
         }
 
         function renderUI(deliveries) {
@@ -233,17 +207,14 @@
             logTableBody.innerHTML = ''; remindersContainer.innerHTML = '';
 
             [...deliveries].sort((a,b) => parseLocalDate(b.date) - parseLocalDate(a.date)).forEach(item => {
-                let payColor = item.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : (item.paymentStatus === 'Account' ? 'bg-indigo-100 text-indigo-800 border border-indigo-200/50' : 'bg-[#E31B23]/10 text-[#E31B23]');
                 logTableBody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition duration-100">
+                    <tr class="hover:bg-slate-50 transition">
                         <td class="py-3 font-bold text-slate-600">${item.date}</td>
                         <td class="py-3 font-bold text-slate-800">${item.customerName}</td>
-                        <td class="py-3 text-slate-500 truncate max-w-xs">${item.address}</td>
                         <td class="py-3 text-[#0053A0] font-bold">${item.products}</td>
-                        <td class="py-3"><span class="px-2 py-1 rounded text-xs font-bold ${payColor}">${item.paymentStatus}</span></td>
-                        <td class="py-3 text-right space-x-2">
-                            <button onclick="editDelivery(${item.id})" class="text-xs font-bold text-[#0053A0] hover:underline">Edit</button>
-                            <button onclick="deleteDelivery(${item.id})" class="text-xs font-bold text-red-600 hover:underline">Delete</button>
+                        <td class="py-3 text-right">
+                            <button onclick="editDelivery(${item.id})" class="text-xs font-bold text-[#0053A0] mr-2">Edit</button>
+                            <button onclick="deleteDelivery(${item.id})" class="text-xs font-bold text-red-600">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -261,13 +232,10 @@
                 const dueDate = new Date(parseLocalDate(item.date));
                 dueDate.setDate(dueDate.getDate() + (item.frequency || 30));
                 const daysRemaining = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-                let cardStyle = daysRemaining < 0 ? 'bg-rose-50 border-l-[#E31B23]' : (daysRemaining === 0 ? 'bg-amber-50 border-l-[#FFE600]' : 'bg-slate-50 border-l-[#0053A0]');
                 remindersContainer.innerHTML += `
-                    <div class="p-4 rounded-lg border-l-4 ${cardStyle} border shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <div><h4 class="font-black text-slate-800">${item.customerName}</h4><p class="text-xs text-slate-600">${item.products} • Due in ${daysRemaining} days</p></div>
-                            <button onclick="completeReminder(${item.id})" class="bg-emerald-600 text-white px-3 py-1.5 rounded font-black text-xs hover:bg-emerald-700">✅ Done</button>
-                        </div>
+                    <div class="p-3 bg-slate-50 border-l-4 border-[#0053A0] rounded shadow-sm flex justify-between items-center">
+                        <div><h4 class="font-black text-slate-800 text-sm">${item.customerName}</h4><p class="text-xs text-slate-500">Due in ${daysRemaining} days</p></div>
+                        <button onclick="completeReminder(${item.id})" class="bg-emerald-600 text-white px-3 py-1 rounded font-black text-xs">Done</button>
                     </div>
                 `;
             });
@@ -279,24 +247,6 @@
             globalDeliveriesArray.forEach(item => csvRows.push([`"${item.date}"`, `"${item.customerName}"`, `"${item.address}"`, `"${item.products}"`, `"${item.paymentStatus}"`, `"${item.type}"`, `"${item.frequency}"`].join(",")));
             const blob = new Blob(["\ufeff" + csvRows.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.setAttribute("download", `delivery_log_${getLocalMonthYearString()}.csv`); link.click();
-        }
-
-        function importFromCSV(input) {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const lines = e.target.result.split(/\r?\n/).slice(1);
-                const batch = db.batch();
-                lines.forEach((line, i) => {
-                    const tokens = line.split(',');
-                    if (tokens.length >= 6) {
-                        const id = Date.now() + i;
-                        batch.set(deliveriesCollection.doc(id.toString()), { id, date: tokens[0].replace(/"/g, ''), customerName: tokens[1].replace(/"/g, ''), address: tokens[2].replace(/"/g, ''), products: tokens[3].replace(/"/g, ''), paymentStatus: tokens[4].replace(/"/g, ''), type: tokens[5].replace(/"/g, ''), frequency: parseInt(tokens[6]) || 30 });
-                    }
-                });
-                await batch.commit();
-            };
-            reader.readAsText(file);
         }
     </script>
 </body>
